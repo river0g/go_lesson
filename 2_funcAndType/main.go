@@ -304,4 +304,101 @@ func main() {
 	}
 	println(q2_sum)
 
+
+
+	/* マップ
+		- キーと値をマッピングさせるデータ構造
+			- キーと値の型を指定できる。
+			- キーには「==」で比較できる型しかだめ
+			- ゼロ値はnil
+
+		var m map[string]int
+
+
+		- マップ初期化
+			- make関数での初期化
+				- make(map[string]int)
+			- リテラルでの初期化
+				- map[string]int{"x": 10, "y": 20}
+			- 空の場合
+				- map[string]int{}
+	*/
+
+	/* マップの操作
+		m1 := map[string]int{"x": 10, "y": 20}
+		- キー指定でアクセス
+			- m["x"]
+		- キー指定で入力
+			- m["z"] = 30
+		- 存在確認, 存在しない場合はゼロ値とfalseを返す。
+			- n, ok := m["z"]
+		- キー指定で削除
+			- delete(m, "z")
+	*/
+	m1 := map[string]int{"x": 10, "y": 20}
+	fmt.Println(m1["x"])
+	me, ok := m1["z"] // 0, false 
+	fmt.Println(me, ok)
+
+
+	/* マップの要素をfor文で取得する 
+		- マップをfor rangeのrangeに指定することで各要素を取得できる。
+			- for k, v := range(マップ) {}
+			- kはマップの要素のキー、vはマップの要素の値
+	*/
+	m2 := map[string]int{"x": 10, "y": 20, "z": 30}
+	for k, v := range(m2) {
+		fmt.Println(k, v)
+	}
+
+
+	
+	/* コンポジット型を要素にする
+		- コンポジット型を要素として持つコンポジット型
+			- スライスの要素がスライスの時(2次元スライス)
+				- [][]int
+			- マップの値がスライスの場合
+				- map[string][]int
+			- 構造体のフィールドの形が構造体
+				- struct {
+					A struct {
+						N int
+					}
+				}
+	*/
+
+
+
+	/* ユーザー定義型
+		- typeに名前を付けて新しい型を定義する
+		- type 型名 型
+			- 組み込み型を基にする
+				- type MyInt int
+			- 他のパッケージの型を基にする
+				- type MyWriter is.Writer
+			- 型リテラルを基にする
+				- type Person struct {
+					Name string
+				}
+	*/
+
+
+	/* Underlying type
+			
+	*/
+
+
+	/* ユーザ定義型の特徴
+	
+	*/
+
+
+	/* 型エイリアス (Go 1.9以上)
+		- 型のエイリアス(コピーみたいなもん)を定義できる
+			- 完全に同じ型
+			- キャスト不要
+				- type Applicant = http.Client
+		- 型名を出力する%Tが同じ元の型名を出す。
+	*/
+
 }
