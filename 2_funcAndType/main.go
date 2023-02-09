@@ -384,7 +384,9 @@ func main() {
 
 
 	/* Underlying type
-			
+		- 各型には基底となる型が存在する。
+			- type MyInt int だとintがUnderlyint typeになる
+			- type MyInt1 int, type MyInt2 MyInt1 の時、MyInt2のUnderlying typeはMyInt1ではなくintである。
 	*/
 
 
