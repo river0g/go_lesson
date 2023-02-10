@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 
 func main() {
@@ -51,7 +54,10 @@ func main() {
 		}
 
 		- コンパイルエラーになる。理由はavgがintになるから。
-		- 修正するにはsumとavgに型つけるか、ifの時にavgをfloat32にキャストする。
+			- avgがintになる理由は、sumは明らかにintで、型なしの3はsumの型に委ねるので、intと型なしの演算結果はintになる。よってavgはintになる。
+		- 修正するにはsumをfloat64にキャストする
+			- ifのところでやるのはアンチパターン
+				- 理由としては計算後にキャストすると値が変わってしまう可能性があるから。
 	*/
 
 	var sum int
@@ -170,7 +176,12 @@ func main() {
 		- 配列の一部を切り出したデータ構造
 			- 配列と同じで要素の方はすべて同じ。
 			- 要素数は方情報に含まない。 => 長さが途中で変えられるので追加、削除ができる。
-			- スライスの背後には配列が存在する。
+			- スライスの背後には配列が存在する。(大事)
+			- スライスは==で比較ができない(エラーになる)
+				a := []int{10,20}
+				b := []int{10,20}
+				if a == b {}
+				// エラー。
 
 		- スライスの初期化
 			- スライスリテラル([]intのようなもの)での初期化
@@ -254,6 +265,19 @@ func main() {
 	// 先頭からm-1番目までのスライスを取得する
 	fmt.Println(ns5[:m]) // [10 20 30 40]
 
+	/* スライスには背後に配列が存在するについて
+		a := []int{10,20} // [10 20]
+		b := append(a, 30) // [10 20 30]
+		c := append(b, 40) // [10 20 30 40]
+		b[1] = 200
+		このとき、a[1]は20だが、c[1]は200になっている。この挙動はスライスの背後には配列が存在するという説明ができる。
+		- まずc[1]が200であることについて、
+			- これはスライスcとスライスbの背後にある配列が同じものだからb[1]を変更するとc[1]にも影響がおよぶ
+		- a[1]が20であることについて、
+			- c[1]はb[1]を変更することにより同じく変更されたが、a[1]が変更されないのは背後の配列が変わったから(参照している配列が違うものになったから)
+				- aをappendしたときに背後にある配列が変わった。その理由として、スライスのcapを超えたときに新しく背後の配列を作成するため。
+		
+	*/
 
 	/* スライスの要素をfor文で取得する 
 		- スライスをfor rangeのrangeに指定することで各要素を取得できる。
@@ -347,9 +371,33 @@ func main() {
 			- kはマップの要素のキー、vはマップの要素の値
 	*/
 	m2 := map[string]int{"x": 10, "y": 20, "z": 30}
-	for k, v := range(m2) {
+	for k, v := range m2 {
 		fmt.Println(k, v)
 	}
+	/* ゼロ値を利用する
+		- ゼロ値という概念があることにより、以下の操作ができる
+	*/
+	counts := map[string]int{}
+	str := "dog dog dog cat dog"
+	for _, s := range strings.Split(str, " ") {
+		counts[s]++
+	}
+	fmt.Println(counts)
+	/*
+		Pythonを例にすると上記はエラーになる。
+		Goのゼロ値という概念のおかげで存在しないkeyを指定してもエラーにならずに0を返してくれる。
+		よって、
+		"""python
+		counts = {}
+		animals = "dog dog dog cat dog"
+		for v in animals.split():
+			if not counts.get(v):
+				counts[v] = 0
+
+			counts[v] += 1
+		"""
+		のような初期化をしなくてもよくなる。
+	*/
 
 
 	
@@ -391,7 +439,16 @@ func main() {
 
 
 	/* ユーザ定義型の特徴
-	
+		- 同じUnderlying typeを持つ型同士は型変換できる。
+		type MyInt int
+		var n int = 100
+		m := MyInt(n)
+		n = int(m) // MyIntのUnderlying typeはintのため、型変換ができる。
+		
+		- 型なし定数から明示的な型変換は不要
+		// 10secを示す (time.Duration型)
+		d := 10 * time.Second
+		time.Secondはtime.Duration型で、このUnderlying typeはint64なため、型なし定数の10と演算してもエラーにならずに処理できる。
 	*/
 
 
@@ -401,6 +458,32 @@ func main() {
 			- キャスト不要
 				- type Applicant = http.Client
 		- 型名を出力する%Tが同じ元の型名を出す。
+
+		- type 型名 型のユーザー定義型と型エイリアスは似ているけど違うもの。
 	*/
 
+
+	/*
+		Q3. ユーザー定義型の利用
+		次の使用のデータ構造を考える
+		- ゲームの得点を集計するプログラム
+		- 0-100刻みの点数
+		- 集計は複数回のゲームの結果を基にユーザーごとに行う
+		- どういう構造で1回のデーム結果を表現すべきか
+	*/ 
+	type List [] struct {
+		user string
+		point int
+		version int
+	}
+	/* 解答例
+		type Score struct {
+			UserID string
+			GameID int
+			Point int
+		}
+
+		解答例を踏まえて、採点
+		フィールド名に関してはおいといて、アッパーキャメルケース(先頭だけ大文字)にする。
+	*/
 }
