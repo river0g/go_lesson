@@ -1,3 +1,3 @@
-module funcAndType
+module Type
 
 go 1.19
