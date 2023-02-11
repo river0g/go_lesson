@@ -221,7 +221,144 @@ func main() {
 	n1, m1 := 10, 20
 	Qswap2(&n1, &m1)
 	println(n1, m1)
+
+
+	/* メソッド
+		- レシーバと紐づけられた関数
+			- func (引数 メソッドを登録する型) メソッド名() 戻り値 {..} で登録する。
+			- データとそれに対する操作を紐付けするために用いる
+			- ドットでメソッドにアクセスする
+		type Hex int
+		// Hexのメソッドとして登録
+		func (h Hex) String() string {
+			return fmt.Sprintf("%x", int(h)) // Sprintf はPrintlnみたいにその場で出力せずに新しい文字列を作成するfmtのメソッド
+		}
+		
+		var hex Hex = 100
+		fmt.Println(hex.String()) // Stringメソッドの呼び出し
+	*/
+
+	var hex Hex = 100
+	fmt.Println(hex.String())
+
+	/* レシーバ
+		- メソッドに関連づけられた変数
+			- メソッド呼び出し時には通常の引数と同じような扱いになる
+				- コピーが発生する
+			- ポインタを用いることでレシーバへの変更を呼び出し元に伝えることができる。
+				- レシーバがポインタの場合もドットでアクセスする。
+		func(t *T)のtがレシーバ。f()のレシーバ(受信者)であるという意味でレシーバと呼ばれる
+		type T int
+		func (t *T) f() { println("hi") }
+		func main () {
+			var v T
+			(&v).f() // これと、
+			v.f() // これは同じ意味。
+		}
+	*/
+	var v T
+	(&v).f()
+	v.f() // ポインタで渡していない(直接値に対してメソッドを使用している)のに、レシーバにはポインタで渡される。
+
+
+	/* ポインタ型のメソッドリスト
+		*T型はTのメソッドも自身のメソッドとして扱われる
+		func (t T) f() {}
+		func (t *T) g() {}
+
+		func main() {
+			(T{}).f() // T
+			(&T{}).f() // *T
+			(*&T{}).f() // T
+
+			(T{}).g() // できない
+			(&T{}).g()
+			(*&T{}).g()
+		}
+
+		- (&T{}).f()ができるのはタイトルの通り、言語仕様で「Tのポインタ型もT自身のメソッドとして扱える」から。
+		- (T{}).g()ができないのは、関数gのレシーバはポインタを受け取るから。
+			- 変数に代入してからメソッドを使う場合はそのままでも扱える。
+				- 理由としてはシンタックスシュガーとして、変数で扱う場合はポインタ型でなくても扱える。
+		func (t *T) f() {}
+		func main() {
+			var v T
+			(&v).f()
+			v.f() // ポインタ型でないのにメソッドが使えるのはシンタックスシュガー
+		}
+	*/
+
+
+	/* レシーバにできる型
+		- typeで定義した型
+			- ユーザー定義型がレシーバにできる
+		- ポインタ型
+			- レシーバに変更を与えたい場合
+		- 内部にポインタを持つ型
+			- マップやスライスなどもレシーバにできる
+	*/
+
+
+	/* 
+		- Q4. レシーバに変更を与える
+		- 次のプログラムを正しく動作するようにしてください。
+			- Incメソッドは自信を1づつ加算する
+			- 今の実装だと正しく動かない
+			- 動かない理由を考え、意図通り動くように修正してください。
+		type MyInt int
+		func (n MyInt) Inc() { n++ }
+		func main() {
+			var n MyInt
+			println(n)
+			n.Inc()
+			println(n)
+		}
+
+		自分の回答
+		レシーバをポインタにする。
+	*/
+	var qn MyInt
+	println(qn)
+	qn.Inc()
+	println(qn)
+
+
+	/* メソッド値
+		- メソッドも値として扱える
+			- レシーバは束縛された状態
+
+		var hex Hex = 100
+		f := hex.String
+		hex = 200 // メソッドを値として代入したあとにhexを変更しても元のhexが束縛されているので変更は適用されない。
+		fmt.Println(f()) // 64
+
+		- ただ、ポインタにした場合は変更される
+			- 実行時にポインタの値をみるため。
+	*/
+	var phex Hex = 100
+	ph := &phex
+	f1 := ph.PString
+	phex = 200 // ここで値を変更するとfの実行結果が変わる。
+	fmt.Println(f1()) 
+
+
+	/* メソッド式
+		- メソッドを表す式
+			- レシーバを第一引数とした関数になる。
+			- レシーバの値が決定していない状態でメソッド値を代入する
+			- こちらはインスタンスではなく、型.メソッド名()と書く。
+	*/
+	var hex1 Hex = 100
+	f2 := Hex.String
+	fmt.Printf("%T\n%s\n", f2, f2(hex1))
+
+	/*
+		メソッド値やメソッド式はテストの時によく使われる
+	*/
 }
+type MyInt int
+func (n *MyInt) Inc() { *n++ }
+
 
 func swap(x, y int) (int, int) {
 	return y, x
@@ -242,3 +379,14 @@ func Qswap(x, y int) (int, int) {
 func Qswap2(x, y *int){
 	*x, *y = *y, *x
 }
+
+type Hex int
+func (h Hex) String() string {
+	return fmt.Sprintf("%x", int(h)) // hを16進数に変える
+}
+func (h *Hex) PString() string {
+	return fmt.Sprintf("%x", int(*h))
+}
+
+type T int
+func (t *T) f() { println(*t) }
