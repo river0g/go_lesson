@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/tenntenn/greeting"
 )
 var msg string = "hello"
 func f() { println(msg) }
@@ -208,4 +209,194 @@ func main() {
 				- エラーハンドリングが必要な処理は書かない
 				- init関数は明示的に呼び出せない
 	*/
+
+
+	/* ライブラリのバージョン管理
+		- go getでライブラリの取得をする
+			- go get
+				- Goのライブラリなどを取得するコマンド
+				- 依存するライブラリも一緒にダウンロードしてくれる
+				- 指定した場所からダウンロードandインストールしてくれる
+				- 一度取得したものは二度取得しない
+				- -u オプションでダウンロード強制する。
+		$ go get github.com/taro/greeting
+		$ ls $GOPATH/src/github.com/taro/greeting
+		README.md greeting.go
+	*/
+
+	/* ライブラリを取得してみよう
+		- github.com/tenntenn/greetingをgo getする
+			go get github.com/tenntenn/greeting
+		- mainパッケージから使ってみる
+			- import パスを"github.com/tenntenn/greeting"にしてインポートする。
+	*/
+	fmt.Println(greeting.Do())
+
+
+	/* GoDocを生成する
+		- GoDocとは
+			- ソースコード情に書かれたコメントをドキュメントとして扱う
+			- JavaのJavaDocに似ているらしい
+				- @paramなど凝った記法はない
+			- エクスポートされたものに書くことが多い
+		
+		- pkg.go.devを使ってパッケージドキュメントを読む
+			- pkg.go.devは自動でGoDocを生成するサービス
+			- URLの後ろにインポートパスを書いてアクセスする。
+				- https://pkg.go.dev/github.com/tenntenn/greeting
+					- わかりやすい。
+		
+		- Go modules
+			- 標準モジュール管理の仕組み
+				- https://golang.org/ref/mod
+				- Go1.13で正式導入
+
+			- modulesの特徴
+				- ビルド時に依存関係を解決する (go toolのように)
+				- ベンダリングが不要になる
+					- ベンダリングとは依存関係をプロジェクトのリポジトリに入れてしまうことである。
+						- pythonでいうvenvのsite-packageなど(実際にはgitにアップロードしない)の対極にあるもの。
+				- 新しくモジュールという概念単位でバージョン管理する
+				- 互換性がなくなる場合はインポートパスを変える。
+				- 可能な限り古いバージョンが優先される
+		
+			
+		- goinstallの登場
+			- 2010年2月に登場
+				- GitHubやBitbucketからダウンロードして配置する。
+				- Makefileほどの柔軟性はないが、利便性が向上。
+				- 2012年2月のGo1.0リリースでGo getに
+
+		- go getで解決したこと
+			- 簡単にビルドができるようになった
+			- 作ったものを簡単に公開、再利用できるようになった。
+				- 現在のGoコミュニティを形成する上で重要なファクタ
+				- go getすることで簡単に他人のパッケージを利用できる
+			- ビルドしすてむを意識しなくて良い
+				- 依存関係の解決方法などはかってにやってくれる。
+
+		- go getで解決できなかったこと
+			- バージョン付けとAPIの安定性
+				- バージョン付けができない
+				- アップデートによって何が変わるのかユーザーに提示できない
+				- gopkg.inなどの登場
+			- ベンダリングとビルドの再現可能性
+				- ビルドの再現性が取れない
+				- 取得時に常に最新をみてしまうこと
+				- godep, glide, GBなどの登場
+				- ベンダリングの対応(Go1.5以上)
+
+		- ベンダリング
+			- ライブラリのベンダリング
+				- vendeor以下に置くとimportで優先される
+				- バージョン指定不可
+			vendor > github.com > taro > cli
+	*/
+
+
+	/* ビルドが解決できない例
+		- 1. パッケージDのインストール
+			- go get D // D: 1.0
+		- 2. パッケージCのインストール
+			- go get C // C:1.8, D>=1.4依存, 1.でインストールしたものは古い
+		- 3. パッケージDの更新
+			- go get -u D // C: 1.8, D>=1.4依存, ここでD:1.6になるがこのバージョンにバグがあった。
+		結果としてうまくビルドができない
+	*/
+
+	/* バージョン管理ツールの登場
+		- サードパーティ製のツール類が登場し始める
+			- GB
+				- https://getgb.io/
+				- プロジェクトベースのビルドツール
+			- glide
+				- https://github.com/Masterminds/glide
+				- Goコミュニティで多く使われていたパッケージ管理ツール
+		サードパーティが台頭してきたので標準のものが必要になってきた。
+	*/
+
+
+	/* depの登場
+		- 公式によるバージョン管理の導入実験
+			- GopherCon 2016のHack Dayで議論が行われた
+			- そこからdepが登場した。
+			- https://github.com/golang/dep
+		- The New Era of Go Package Management
+			- GopherCon 2017においての発表
+			- depのやっていき方を発表
+			- semverの推奨
+		
+		結果としてdepはgoツールに直接導入されるものではなかった。
+	*/
+
+	/* そしてmodules(vgo)へ
+		- modules(vgo)で提案すること
+			- Import Compatibility Rule
+			- Minimal Version Selection
+			- モジュールの導入
+			- 現在のワークフローを壊さずにgo toolに導入する。
+		modulesが普及するにはGoコミュニティの協力が必要
+	*/
+
+	/* Import Compatibility Rule
+		- importパスが同じ場合は後方互換性を維持する
+			- 後方互換性を保てない場合はインポートパスを変える
+		import "github.com/taro/hoge"
+		↓
+		import hoge "github.com/taro/hoge/v2"
+	*/
+
+	/* Minimal Version Selection
+		- 最小バージョンの選択
+			- 選択できるバージョンの内最も古いバージョンを選択。
+			- どんどんバージョンアップされても常に同じ(=古い)ものを使う
+			- 特定のバージョンを指定すれば新しいものを使うことはできる
+			- 依存モジュールの下限だけ指定することによって、一位にビルドに使用するバージョンが特定できる。
+	*/
+
+	/* モジュール
+		- バージョン付けを行う単位
+			- go.modファイルを使って依存モジュールを記述
+			- バージョンはsemverで記述する
+			- 特定のコミットも指定できる
+		module "rsc.io/hello" <- モジュール名
+
+		require (
+			↓ 依存しているモジュール
+			"golang.org/x/text" v0.0.0-20180208...-4e...54
+			"rsc.io/quote" v1.5.2 <- 依存しているモジュールのバージョン
+		)
+	*/
+
+	/* セマンティックバージョニング
+		- バージョンの付け方のルール
+			- semverと略される
+			- v0.0.2やv1.1.1などと表記する。
+		- バージョンの上げ方
+			- 互換が崩れる場合はメジャーバージョン (例: v1.2.3 -> v2.0.0)
+			- 機能追加の場合はマイナーバージョン (例; v1.2.3 -> v1.3.0)
+			- バグ修正の場合はパッチバージョン (例; v1.2.3 -> v1.2.4)
+	*/
+
+	/* go modコマンド
+		- go modコマンドを有効にする
+		- go modコマンドのサブコマンド
+			- "go mod init モジュール名" 
+				- 指定したモジュール名でgo.modファイルを作成する。モジュール名を省略するとGOPATHから推測する。
+			- "go mod tidy" 
+				- 使用していないモジュールのgo.modからの削除。必要なモジュールのダウンロードとgo.modへの追加
+			- "go mod why" 
+				- 指定したバッケージの必要な理由を表示
+			- "go mod vendor"
+				- 依存するパッケージをvendor以下にコピーする
+	*/
+
+
+	/* TRY
+		modulesを使ってみよう
+			- modules用のプロジェクトを作成する
+				- github.com/tenntenn/greetingのv1.0.0を使ってみる
+				- github.com/tenntenn/greetingのv2.0.0を使ってみる
+	*/
+
 }
