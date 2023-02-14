@@ -5,7 +5,7 @@ import (
 	"os"
 	"flag"
 	"strings"
-	"log"
+	"bufio"
 )
 
 var msg = flag.String("msg", "デフォルト値", "説明")
@@ -105,9 +105,162 @@ func main() {
 			- os.Exit(1)で異常終了させる
 			- 終了コードがコントロールできないためあまり多用しない
 	*/
-	if err := f(); err != nil {
-		log.Fatal(err)
+	/* nilでなければ(errorであれば)異常終了させる。
+		if err := f(); err != nil {
+			log.Fatal(err)
+		}
+	*/
+
+
+	/* ファイルを扱う
+		- osパッケージを用いる
+		// 読み込み用にファイルを開く
+		sf, err := os.Open(src)
+		if err != nil {
+			return err
+		}
+		// 関数終了時に閉じる
+		defer sf.Close()
+
+		- 書き込み用にファイルを開く
+		df, err := os.Create(dst)
+		if err != nil {
+			return err
+		}
+		// 関数終了時に閉じる
+		defer func() {
+			if err != df.Close(); err != nil {
+				rerr = err
+			}
+		}()
+	*/
+
+	/* 追記用のファイル
+		todo...
+
+	*/
+
+
+
+	/* defer
+		- 関数の遅延実行
+			- 関数終了時に実行される。
+			- 引数の評価はdefer呼び出し時
+			- スタック形式で実行される(最後に呼び出したものが最初に実行)
+
+		msg := "!!!"
+		defer fmt.Println(msg) // 3番目に実行される。ここではmsg==!!!
+		msg = "world"
+		defer fmt.Println(msg) // 2番目に実行される。ここではmsg==world
+		fmt.Println("hello") // 1番目に実行される。
+
+		上記の出力結果
+		hello
+		world
+		!!!
+	*/
+	msg1 := "!!!"
+	defer fmt.Println(msg1)
+	msg1 = "world"
+	defer fmt.Println(msg1)
+	fmt.Println("hello")
+
+	/* for内のdeferは避けよう
+		- 予約した関数呼び出しはreturn時に実行される
+			- forを関数に分ければよい
+		for _, fn := range fileNames {
+			f, err := os.Open(fn)
+			if err != nil {
+				// エラー処理
+			}
+			defer f.Close()
+			
+			// fを使った処理
+		}
+
+		** for内でdeferを避けるので、関数化する。**
+
+		func main() {
+			for _, fn := range fileNames {
+				err := readFile(fn)
+				if err != nil { // エラー処理 }
+			}
+		}
+		func readFile(fn string) error {
+			f, err := os.Open(fn)
+			if err != nil { return err }
+			defer f.Close()
+
+			// fを使った処理
+		}
+
+		// なぜこれがいいのかわからないので動画で確認する。
+	*/
+
+
+	
+	/* 入出力関連の便利パッケージ
+		- encoding: JSONやXML, CSVなどのエンコードを扱うことができる
+		- strings: 文字列周りの処理がある
+		- bufio: Scannerが便利
+		- strconv: 文字列への変換を行う関数を提供
+		- unicode: Unicode周りの処理を提供
+	*/
+
+
+	/* 1行ずつ読み込む
+		- bufio.Scannerを使用する
+		// 標準入力から読み込む
+		scanner := bufio.NewScanner(os.Stdin)
+		// 1行ずつ読み込んで繰り返す
+		for scanner.Scan() {
+			// 1行分を出力する
+			fmt.Println(scanner.Text())
+		}
+		// まとめてエラー処理をする
+		if err := scannerErr(); err != nil {
+			fmt.Fprintln(os.Stderr, "読み込みに失敗しました", err)
+		}
+	*/
+	
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		text := scanner.Text()
+		if text == "exit" {
+			fmt.Println("see you!")
+			break
+		}
+		fmt.Println(text)
 	}
+
+
+	/* ファイルパスを扱う
+		- path/filepathパッケージを使う
+			- OSに寄らないファイルパスの処理が行える // winだと \main でmacは /main など...
+		// パスを結合する。
+		path := filepath.Join("dir", "main.go")
+		// 拡張子を取る。
+		fmt.Println(filepath.Ext(path))
+		// ファイル名を取得
+		fmt.Println(filepath.Base(path))
+		// ディレクトリ名を取得
+		fmt.Println(filepath.Dir(path))
+	*/
+
+	/* ディレクトリをウォークする
+		// Goファイルを探し出す
+		err := filepath.Walk("dir",
+			func(path string, info os.FileInfo, err error) error {
+				if filepath.Ext(path) == ".go" {
+					fmt.Println(path)
+				}
+				return nil
+			}
+		)
+		if err != nil {
+			return err
+		}
+	*/
 }
 
 func f() any {
