@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"os"
 	"flag"
-	"strings"
+	// "strings"
 	"bufio"
+	"path/filepath"
 )
 
-var msg = flag.String("msg", "デフォルト値", "説明")
+// var msg = flag.String("msg", "デフォルト値", "説明")
 var n int
 func init() {
-	flag.IntVar(&n, "n", 1, "回数")
+	// flag.IntVar(&n, "n", 1, "回数")
 }
 
 func main() {
@@ -55,8 +56,8 @@ func main() {
 			// ./main -msg=こんにちは -n=2
 		}
 	*/
-	flag.Parse()
-	fmt.Println(strings.Repeat(*msg, n))
+	// flag.Parse()
+	// fmt.Println(strings.Repeat(*msg, n))
 
 
 	/* flagパッケージとプログラム引数
@@ -64,7 +65,7 @@ func main() {
 			- os.Argsだとフラグも含まれる ./main -msg=hello hi -> [./main -msg=hello hi]
 			- flag.Argsだとフラグの分は除外される。
 	*/
-	fmt.Println(flag.Args())
+	// fmt.Println(flag.Args())
 
 
 
@@ -159,11 +160,11 @@ func main() {
 		world
 		!!!
 	*/
-	msg1 := "!!!"
-	defer fmt.Println(msg1)
-	msg1 = "world"
-	defer fmt.Println(msg1)
-	fmt.Println("hello")
+	// msg1 := "!!!"
+	// defer fmt.Println(msg1)
+	// msg1 = "world"
+	// defer fmt.Println(msg1)
+	// fmt.Println("hello")
 
 	/* for内のdeferは避けよう
 		- 予約した関数呼び出しはreturn時に実行される
@@ -198,7 +199,7 @@ func main() {
 	*/
 
 
-	
+
 	/* 入出力関連の便利パッケージ
 		- encoding: JSONやXML, CSVなどのエンコードを扱うことができる
 		- strings: 文字列周りの処理がある
@@ -223,15 +224,15 @@ func main() {
 		}
 	*/
 	
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		text := scanner.Text()
-		if text == "exit" {
-			fmt.Println("see you!")
-			break
-		}
-		fmt.Println(text)
-	}
+	// scanner := bufio.NewScanner(os.Stdin)
+	// for scanner.Scan() {
+	// 	text := scanner.Text()
+	// 	if text == "exit" {
+	// 		fmt.Println("see you!")
+	// 		break
+	// 	}
+	// 	fmt.Println(text)
+	// }
 
 
 	/* ファイルパスを扱う
@@ -261,8 +262,66 @@ func main() {
 			return err
 		}
 	*/
+
+
+
+	/* 
+		- Q1. catコマンドを作ろう
+			- 作成するcatコマンドの仕様
+				- 引数でファイルパスの一覧を貰い、そのファイルを与えられた順標準出力順に標準出力にそのまま出力するコマンドを作ってください
+				- また、-n オプションを指定すると、行番号を各行につけて表示されるようにしてください。
+				- なお、行番号は全てのファイルで通し番号にしてください。
+			例. $ mycat -n hoge.txt fuga.txt
+			1: hoge
+			2: hoge hoge
+			3: fuga
+			4: fugafuga
+	*/
+	// mycat()
+
+	fmt.Println("********************************")
+	const dir = "/Users/0g/myapp/go_lesson/4_cliTool/resource"
+	// フラグを受け取る
+	var qn bool
+	flag.BoolVar(&qn, "qn", false, "行番号付与")
+
+	flag.Parse()
+
+	// ファイル名を受け取る
+	var args []string = flag.Args()
+
+	// ファイルを出力
+	for idx, fn := range args{
+		filePath := filepath.Join(dir, fn)
+		rf, err := os.Open(filePath)
+		if err != nil {
+			fmt.Println(err)
+		}
+	
+		scanner := bufio.NewScanner(rf)
+		for scanner.Scan() {
+			if qn {
+				fmt.Printf("%v: ", idx)
+			}
+			fmt.Println(scanner.Text())
+		}
+	}
+
+	
+
+	fmt.Println("********************************")
+	//
 }
 
 func f() any {
 	return "error"
+}
+
+func mycat() {
+	flag.Parse()
+
+	// フラグを受け取る。
+	
+
+
 }
