@@ -316,12 +316,3 @@ func main() {
 func f() any {
 	return "error"
 }
-
-func mycat() {
-	flag.Parse()
-
-	// フラグを受け取る。
-	
-
-
-}
