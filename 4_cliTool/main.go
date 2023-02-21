@@ -7,6 +7,11 @@ import (
 	// "strings"
 	"bufio"
 	"path/filepath"
+
+	"image"
+	_ "image/jpeg"
+	"image/png"
+	"log"
 )
 
 // var msg = flag.String("msg", "デフォルト値", "説明")
@@ -306,13 +311,89 @@ func main() {
 			fmt.Println(scanner.Text())
 		}
 	}
-
-	
+	fmt.Println("********************************")
 
 	fmt.Println("********************************")
-	//
+	/*
+		- Q2. 画像変換コマンドを作る
+			- 次の使用を満たすコマンドの作成
+				- ディレクトリを指定する。
+				- 指定したディレクトリ以下のJPGファイルをPNGに変換(デフォルト)
+				- 変換前と返還後の画像形式を指定できる(オプション)
+			- 以下を満たすように開発
+				- mainパッケージと分離する
+				- 自作バッケージと標準パッケージと準標準パッケージのみ使う
+					- golang.org/x以下のパッケージ
+				- ユーザー定義型を作ってみる
+				- GoDocを生成してみる
+				- Go Modulesを使ってみる
+	*/
+	/*
+		方針
+			- image, image/jpegを使う
+	*/
+	img := LoadImage("/4_cliTool/resource/jisoo.jpg")
+	gray := img.Gray()
+	gray.Save("/4_cliTool/resource/jisoo1.png")
+
+	fmt.Println("********************************")
 }
 
-func f() any {
-	return "error"
+type Img struct {
+	Image image.Image // 画像
+	Path string // 画像のパス
+	Height, Width int // 画像の幅、高さ
+}
+
+func LoadImage(path string) Img {
+	f, _ := os.Open(path)
+	defer f.Close()
+
+	src, _, err := image.Decode(f)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	size := src.Bounds().Size()
+	width, height := size.X, size.Y
+	fmt.Println(width)
+
+	return Img{
+		Image: src,
+		Path: path,
+		Height: height,
+	}
+}
+
+func (img *Img) Save(path string) {
+	f, err := os.Create(path)
+	if err != nil {
+		log.Println("Cannot create file:", err)
+	}
+	defer f.Close()
+
+	png.Encode(f, img.Image)
+}
+
+func (img *Img) Gray() Img {
+	canvas := image.NewGray(
+		image.Rect(0 ,0, img.Width, img.Height),
+	)
+
+	for y:=0; y<img.Height; y++ {
+		for x:=0; x<img.Width; x++ {
+			canvas.Set(x, y, img.Image.At(x, y))
+		}
+	}
+
+	return Img{
+		Image: canvas,
+		Path: img.Path,
+		Height: img.Height,
+		Width: img.Width,
+	}
+}
+
+func f() error {
+	return nil
 }
