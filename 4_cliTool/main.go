@@ -332,9 +332,9 @@ func main() {
 		方針
 			- image, image/jpegを使う
 	*/
-	img := LoadImage("/4_cliTool/resource/jisoo.jpg")
+	img := LoadImage("./resource/jisoo.jpg")
 	gray := img.Gray()
-	gray.Save("/4_cliTool/resource/jisoo1.png")
+	gray.Save("./resource/jisoo4.png")
 
 	fmt.Println("********************************")
 }
@@ -362,6 +362,7 @@ func LoadImage(path string) Img {
 		Image: src,
 		Path: path,
 		Height: height,
+		Width: width,
 	}
 }
 
@@ -375,9 +376,19 @@ func (img *Img) Save(path string) {
 	png.Encode(f, img.Image)
 }
 
+
+/*
+	image.Rectの戻り値 image.Rectangle
+	type Point struct {
+		x, y int
+	}
+	type Rectangle struct {
+		X, Y Point
+	}
+*/
 func (img *Img) Gray() Img {
 	canvas := image.NewGray(
-		image.Rect(0 ,0, img.Width, img.Height),
+		image.Rect(0, 0, img.Width, img.Height), // (Pt(x0, y0), Pt(x1, y1))を指定する。
 	)
 
 	for y:=0; y<img.Height; y++ {
