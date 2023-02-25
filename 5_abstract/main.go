@@ -13,9 +13,6 @@ func main() {
 		- インタフェースによる抽象化
 			- Goではインタフェースでしか抽象化をすることができない
 
-	例えば...
-	具体的な処理Aがあり、ファイル1とファイル2で使用されているとする。
-	これ抽象化で処理Aをまとめられる。
 
 	- インタフェース
 		- 型TがインタフェースIを実装しているとは、
@@ -177,6 +174,91 @@ func main() {
 	var j MyInt = 100
 	F(j)
 
+	/*
+		ここまでのinterfaceまとめ。
+		- interfaceはメソッドのあつまりである。
+			- interfaceは機能の抽象化
+		- 任意の型にinterfaceを実装できるが、その型が持つメソッド以外のメソッドしか実装できない。
+		- 実装方法
+			- 1. 型とその型に付随するメソッドを定義する。
+			- 2. そのメソッドから任意のメソッドをまとめたものをinterfaceとしてまとめる。
+			- 3. var 変数名 型名 = ... の型名にinterfaceの名前を入れる。...にはinterfaceの元となる型を入れる。
+				- 以下はMyIntからStringer interfaceを実装し、実際に使うまで。
+				- var s Stringer = MyInt("100")
+			- 4. interfaceに実装されたメソッドを全て持つ型名なら var 変数名 interface型名としなくても良い。
+				- 上の例でいうと、
+				- var s MyInt = "100"
+				- s.String() でも良い。
+			- 5. ただ、4の場合はinterface実装する意味がない。
+				- あくまでも使用できるメソッドの種類は Interfaceの元の型 >= Interface であるから、MyIntで定義するならわざわざメソッドの制限があるInterfaceで実装する必要がないため。
+	*/
+	var ss QStringer = MyString("100")
+	fmt.Println(ss.String())
+
+	/*
+
+
+	 */
+
+	/* 埋め込みとインタフェース
+	- 構造体の埋め込み
+		- 構造体に匿名フィールドを埋め込む機能
+	type Hoge struct {
+		N int
+	}
+	type Fuga struct {
+		Hoge // 名前のないフィールドになる
+	}
+
+
+	- 埋め込みとフィールド
+		- 埋め込んだ値に委譲 (継承ではない)
+	*/
+	type Hoge struct{ N int }
+	type Fuga struct{ Hoge }
+	f := Fuga{Hoge{N: 100}}
+	// Hoge型のフィールドにアクセスできる。
+	fmt.Println(f.N)
+	// 型名を指定してアクセスできる。
+	fmt.Println(f.Hoge.N)
+
+	/*
+		埋め込みの特徴
+		- 型リテラルでなければ埋め込められる
+			- typeで定義したものや組み込み型
+			- インタフェースも埋め込められる
+		- インタフェースの実装
+			- 埋め込んだ値のメソッドもカウント
+		type Stringer interface {
+			String() string
+		}
+		type Hex int
+		funct (h Hex) String() string {
+			return fmt.Sprintf("%x", int(h))
+		}
+		type Hex2 struct {Hex} // Hex2もStringerを実装
+
+
+		- インタフェースと埋め込み
+			- 既存のインタフェースの振る舞いを変える
+		type Hoge interface{M(); N()}
+		type fuga struct {Hoge} // インタフェースを埋め込む
+		func (f fuga) M() {
+			fmt.Println("Hi")
+			f.Hoge.M() // 元のメソッドを呼ぶ // Mの振る舞いを変える。
+		}
+
+			- インタフェースをインタフェースに埋め込む
+				- 複数のインタフェースを合成する
+				- 複雑なインタフェースが必要な場合
+		type Reader interface { Read(p []byte) (n int, err error) }
+		type Writer interface { Write(p []byte) (n int, err error) }
+		// ReaderとWriterを埋め込む
+		type ReadWriter interface {
+			Reader
+			Writer
+		}
+	*/
 }
 
 type Hex int
