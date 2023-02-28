@@ -1,9 +1,15 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"os"
+	"strings"
+	"unicode/utf8"
 )
 
 func main() {
@@ -120,6 +126,45 @@ func main() {
 				- エラーが発生した場合はエラーが発生した旨を表示する。
 	*/
 
+	/* エラー処理をまとめる
+	- bufio.Scannerの実装が参考になる。
+		- 途中でエラーが発生したらそれ以降の処理を飛ばす
+		- すべての処理が終わったらまとめてエラーを処理
+		- それ以降の処理を実行する必要ない場合に使う
+		- エラー処理が1箇所になる
+	*/
+	s := bufio.NewScanner(os.Stdin)
+	for s.Scan() {
+		fmt.Println(s.Text())
+	}
+	if err := s.Err(); err != nil {
+		// エラー処理
+	}
+
+	/*
+
+	 */
+
+	/*
+		- Q2.
+
+	*/
+
+	s1 := NewRuneScanner(strings.NewReader("Hello, 世界"))
+
+	for {
+		r, err := s1.Scan()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("%c\n", r)
+	}
+
 }
 
 func f() error {
@@ -151,4 +196,28 @@ func ToStringer(v interface{}) (Stringer, error) {
 		return s, nil
 	}
 	return nil, MyError("CastError")
+}
+
+type RuneScanner struct {
+	r   io.Reader
+	buf [16]byte
+}
+
+func NewRuneScanner(r io.Reader) *RuneScanner {
+	return &RuneScanner{r: r}
+}
+
+func (s *RuneScanner) Scan() (rune, error) {
+	n, err := s.r.Read(s.buf[:])
+	if err != nil {
+		return 0, err
+	}
+
+	r, size := utf8.DecodeRune(s.buf[:n])
+	if r == utf8.RuneError {
+		return 0, errors.New("RuneError")
+	}
+
+	s.r = io.MultiReader(bytes.NewReader(s.buf[size:n]), s.r)
+	return r, nil
 }
