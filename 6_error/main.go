@@ -135,7 +135,11 @@ func main() {
 	*/
 	s := bufio.NewScanner(os.Stdin)
 	for s.Scan() {
-		fmt.Println(s.Text())
+		text := s.Text()
+		if text == "exit" {
+			break
+		}
+		fmt.Println(text)
 	}
 	if err := s.Err(); err != nil {
 		// エラー処理
@@ -146,8 +150,11 @@ func main() {
 	 */
 
 	/*
-		- Q2.
-
+		- Q2. エラ＝処理をまとめる
+		- 1コードポイント(rune)ずつ読み込むScannerを作る。
+			- 初期化時にio.Readerを渡す
+			- bufio.Scannerと似た感じに
+			- エラー処理をまとめる
 	*/
 
 	s1 := NewRuneScanner(strings.NewReader("Hello, 世界"))
@@ -165,6 +172,53 @@ func main() {
 		fmt.Printf("%c\n", r)
 	}
 
+	/*
+
+	 */
+
+	/* エラーをまとめる
+	- https://github.com/uber-go/multierr を使う
+		- 成功したものは成功させたい
+		- 失敗したものだけエラーとして報告したい
+		- N番目エラーはどういうエラーなのか知れる
+
+	var rerr error
+	if err := step1(); err != nil {
+		rerr = multierr.Append(rerr, err)
+	}
+	if err := step2(); err != nil {
+		rerr = multierr.Append(rerr, err)
+	}
+	return rerr
+
+	このとき、以下のように扱える(まとめられる)
+	for _, err := range multierr.Errors(rerr) {
+		fmt.Println(err)
+	}
+	*/
+
+	/* エラーに文脈を持たせる
+	- github.com/pkg/errors を使う
+		- エラ〜メッセージが「File Not Found」とかでは分かりづらい
+		- 何をしようとした時にエラーが起きたか知りたい
+		- どんなパラメータだったのか知りたい
+		- errors.Wrapを使うとエラーをラップできる
+		- errors.Causeを使うと元のエラーが取得できる
+
+	if err := f(s)l err != nil {
+		return errors.Wrapf(err, "f() with %s", s)
+	}
+	*/
+
+	/* エラーに文脈を持たせる(Go 1.13)
+	- fmt.Errorf関数の%wを使う
+		- 引数で指定したエラーをラップしてエラーを作る
+		- Unwrapメソッドを実装したエラーが作られる
+		- errors.Unwrap関数で元のエラーが取得できる
+	err := fmt.Errorf("bar: %w", errors.New("foo"))
+	fmt.Println(err) // bar: foo
+	fmt.Println(errors.Unwrap(err)) // foo
+	*/
 }
 
 func f() error {
