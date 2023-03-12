@@ -48,6 +48,35 @@ func main() {
 	*/
 
 	/*
+		Q.  型Tに対してinterface Iがあるとする。
+			この時、IはTのメソッド集合の部分集合ならTでできることを狭めただけじゃないの？
+
+		A.  抽象化によって生まれるメリットとして、Tのメソッド集合の個々のメソッドの型に依存しないのにまとめられる(抽象化できる)というものがある。
+			例えば、
+			```
+			type S string
+			type I int
+			func (s S) PrintValue() {
+				fmt.Println(s)
+			}
+			func (i int) PrintValue() {
+				fmt.Println(i)
+			}
+			```
+			上記ような型とそれに対するメソッドがあるとする。
+			この時、
+			```
+			type Printer interface {
+				PrintValue()
+			}
+			```
+			とすることでこのPrinterの中のメソッドは元の型に依らないものとなる。
+			var Age Printer = I(28)
+			var Name Printer = S("Jisso")
+			とすることで代入している元の型は違うものなのに型リテラルは同じPrinterにできる。
+	*/
+
+	/*
 		- Q1. インタフェースの必要性
 			- どうやって使えそうか
 				- パッケージ化するとき
@@ -269,6 +298,10 @@ func (h Hex) String() string {
 
 func (h Hex) PrintType() string {
 	return fmt.Sprintf("%T", h)
+}
+
+func (h Hex) PrintValue() string {
+	return fmt.Sprintf("%v", h)
 }
 
 type Func func() string
