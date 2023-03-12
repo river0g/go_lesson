@@ -400,7 +400,32 @@ func main() {
 	*/
 
 
-	
+
+	/* 関数
+		Goでは関数も第一級オブジェクトであり、int,stringなどの型と同等に扱える。
+		たとえば、
+		type MyInt int
+		みたいに
+		type MyFunc func()
+		と書くことができる。
+
+		ここで、0値について見ていくが、まず
+		var Func func()
+		var Int int
+		と変数を定義する。
+
+		println(Int) // 0
+		println(func()) // panic
+		となる。
+		これはfuncの0値が<nil>であるためにこのようなことが起こる。
+
+		以下のようにすればOK
+		var Func func() = func() {
+			fmt.Println("called")
+		}
+	*/
+
+
 	/* コンポジット型を要素にする
 		- コンポジット型を要素として持つコンポジット型
 			- スライスの要素がスライスの時(2次元スライス)
